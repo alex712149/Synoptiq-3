@@ -117,8 +117,15 @@ export interface ExtremeProbability {
   probability: number | null;
   calibrated: boolean;
   probability_reason?: string | null;
+  calibration_status?: "CALIBRATED" | "WITHHELD";
+  calibration_source?: "region" | "global" | null;
   forecast_value: number;
   threshold_exceeded: boolean;
+  trust_score?: number | null;
+  bust_probability?: number | null;
+  bust_flag?: boolean | null;
+  disagreement?: number | null;
+  source_range?: { minimum: number; maximum: number } | null;
 }
 export interface ExtremeGuidanceResponse {
   region: RegionCode;

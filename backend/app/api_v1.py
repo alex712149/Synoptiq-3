@@ -15,6 +15,7 @@ from app.config import (ACTIVE_METRICS_DIR, ACTIVE_MODEL_VERSION, CALIBRATION_DI
 from app.database import get_db
 from app.models_db import ForecastRow, GroundTruthRow, LiveForecast
 from app.pipeline import run_blend_pipeline
+from app.blending.calibration import exceedance_calibration_source
 from app.replay import real_test_replay_cases
 from app.schemas import SystemStatusResponse
 
@@ -627,32 +628,46 @@ def extreme_guidance(region: str, lead_hours: int, db: Session = Depends(get_db)
         except HTTPException:
             continue
         threshold_key = next(k for k in THRESHOLDS[variable] if k != "unit")
-        calibration_dir = CALIBRATION_DIR
+        probability = internal_result.exceedance_probabilities.get(threshold_key)
+        calibration_source = exceedance_calibration_source(variable, threshold_key, internal)
         calibrated = (
             len(data.get("sources", [])) == len(MODELS)
-            and (
-                (calibration_dir / f"iso_{variable}_{threshold_key}.joblib").exists()
-                or (calibration_dir / f"iso_{variable}_{threshold_key}_{internal}.joblib").exists()
-            )
+            and calibration_source is not None
+            and probability is not None
+            and math.isfinite(float(probability))
         )
         forecast_value = data["final_value"]
         probability_reason = None if calibrated else (
-            "No fitted real validation calibrator is available for this threshold. "
-            "The forecast-to-threshold comparison is deterministic; probability is withheld."
+            "Insufficient real calibration events in the non-test calibration set."
         )
+        source_values = [
+            float(source["forecast_value"])
+            for source in data.get("sources", [])
+            if source.get("forecast_value") is not None
+        ]
+        bust_probability = getattr(internal_result, "bust_probability", None)
+        bust_flag = getattr(internal_result, "bust_flag", None)
+        if bust_flag is None and bust_probability is not None:
+            bust_flag = float(bust_probability) > 0.6
         guidance.append({
             "variable": variable,
             "threshold": THRESHOLDS[variable][threshold_key],
             "unit": THRESHOLDS[variable]["unit"],
-            "probability": (
-                float(internal_result.exceedance_probabilities[threshold_key])
-                if calibrated and threshold_key in internal_result.exceedance_probabilities
-                else None
-            ),
+            "probability": float(probability) if calibrated else None,
             "calibrated": calibrated,
+            "calibration_status": "CALIBRATED" if calibrated else "WITHHELD",
+            "calibration_source": calibration_source if calibrated else None,
             "probability_reason": probability_reason,
             "forecast_value": forecast_value,
             "threshold_exceeded": forecast_value >= THRESHOLDS[variable][threshold_key],
+            "trust_score": getattr(internal_result, "trust_score", None),
+            "bust_probability": bust_probability,
+            "bust_flag": bust_flag,
+            "disagreement": getattr(internal_result, "disagreement", None),
+            "source_range": (
+                {"minimum": min(source_values), "maximum": max(source_values)}
+                if source_values else None
+            ),
         })
     if not guidance:
         raise HTTPException(404, "No forecast data available for extreme guidance.")

@@ -55,6 +55,19 @@ def load_quantile_map(variable: str, region: str | None = None):
     return joblib.load(path)
 
 
+def build_quantile_curve(blend_vals: np.ndarray, truth_vals: np.ndarray,
+                         n_q: int = 50) -> tuple[np.ndarray, np.ndarray] | None:
+    if len(blend_vals) < 10 or len(blend_vals) != len(truth_vals):
+        return None
+    qs = np.linspace(0, 1, n_q)
+    return np.quantile(blend_vals, qs), np.quantile(truth_vals, qs)
+
+
+def apply_quantile_curve(values: np.ndarray, curve: tuple[np.ndarray, np.ndarray]) -> np.ndarray:
+    blend_q, truth_q = curve
+    return np.interp(values, blend_q, truth_q)
+
+
 def fit_quantile_map(blend_vals: np.ndarray, truth_vals: np.ndarray, variable: str,
                       region: str | None = None, n_q: int = 50,
                       shrink_toward: tuple | None = None, shrink_k: float = 100.0):
@@ -69,11 +82,10 @@ def fit_quantile_map(blend_vals: np.ndarray, truth_vals: np.ndarray, variable: s
     one region's regional calibrator overfit its own small validation
     sample and generalize worse than the pooled global one on TEST.
     """
-    if len(blend_vals) < 10:
+    curve = build_quantile_curve(blend_vals, truth_vals, n_q)
+    if curve is None:
         return
-    qs = np.linspace(0, 1, n_q)
-    blend_q = np.quantile(blend_vals, qs)
-    truth_q = np.quantile(truth_vals, qs)
+    blend_q, truth_q = curve
     if shrink_toward is not None:
         g_blend_q, g_truth_q = shrink_toward
         alpha = len(blend_vals) / (len(blend_vals) + shrink_k)
@@ -103,12 +115,31 @@ def apply_quantile_map(value: float, variable: str, region: str | None = None) -
 def fit_exceedance_calibrator(blend_vals: np.ndarray, truth_vals: np.ndarray, variable: str,
                                thresh_key: str, region: str | None = None):
     thresh = THRESHOLDS[variable][thresh_key]
+    forecast_vals = np.asarray(blend_vals, dtype=float)
+    truth_vals = np.asarray(truth_vals, dtype=float)
+    finite = np.isfinite(forecast_vals) & np.isfinite(truth_vals)
+    forecast_vals, truth_vals = forecast_vals[finite], truth_vals[finite]
     y = (truth_vals >= thresh).astype(float)
-    if y.sum() < 5 or y.sum() > len(y) - 5:
-        return  # not enough positive/negative examples to calibrate meaningfully
+    positive_count = int(y.sum())
+    negative_count = int(len(y) - positive_count)
+    path = _iso_path(variable, thresh_key, region)
+    if positive_count < 5 or negative_count < 5:
+        path.unlink(missing_ok=True)
+        _load_iso.cache_clear()
+        return {"fitted": False, "positive_count": positive_count, "negative_count": negative_count}
     iso = IsotonicRegression(y_min=0.0, y_max=1.0, out_of_bounds="clip")
-    iso.fit(blend_vals, y)
-    joblib.dump(iso, _iso_path(variable, thresh_key, region))
+    iso.fit(forecast_vals, y)
+    joblib.dump(iso, path)
+    _load_iso.cache_clear()
+    return {"fitted": True, "positive_count": positive_count, "negative_count": negative_count}
+
+
+def exceedance_calibration_source(variable: str, thresh_key: str, region: str | None = None) -> str | None:
+    if region is not None and _iso_path(variable, thresh_key, region).exists():
+        return "region"
+    if _iso_path(variable, thresh_key, None).exists():
+        return "global"
+    return None
 
 
 @lru_cache(maxsize=None)
@@ -119,7 +150,7 @@ def _load_iso(variable: str, thresh_key: str, region: str | None):
     return joblib.load(path)
 
 
-def exceedance_probabilities(calibrated_value: float, variable: str, region: str | None = None) -> dict[str, float]:
+def exceedance_probabilities(calibrated_value: float, variable: str, region: str | None = None) -> dict[str, float | None]:
     out = {}
     for thresh_key in THRESHOLDS.get(variable, {}):
         if thresh_key == "unit":
@@ -128,8 +159,8 @@ def exceedance_probabilities(calibrated_value: float, variable: str, region: str
         if iso is None:
             iso = _load_iso(variable, thresh_key, None)
         if iso is None:
-            # A missing event fit is explicitly uncalibrated, never borrowed from another mode.
-            out[thresh_key] = 0.0
+            out[thresh_key] = None
         else:
-            out[thresh_key] = round(float(iso.predict([calibrated_value])[0]), 3)
+            probability = float(iso.predict([calibrated_value])[0])
+            out[thresh_key] = round(float(np.clip(probability, 0.0, 1.0)), 3)
     return out

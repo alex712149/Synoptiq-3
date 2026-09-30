@@ -59,7 +59,7 @@ class BlendedForecastResponse(BaseModel):
     weights: list[WeightExplanation]
     blended_value_raw: float
     blended_value_calibrated: float
-    exceedance_probabilities: dict[str, float]
+    exceedance_probabilities: dict[str, float | None]
     trust_score: float
     disagreement: float
     bust_probability: float

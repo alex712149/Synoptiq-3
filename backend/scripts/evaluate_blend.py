@@ -24,9 +24,14 @@ from app.database import SessionLocal
 from app.data_prep import prepare_variable_frame, build_batch_blend_inputs
 from app.blending.train_meta_model import get_global_split_boundaries
 from app.blending.blend import batch_blend
-from app.blending.calibration import apply_quantile_map
+from app.blending.calibration import (
+    apply_quantile_map, exceedance_calibration_source, exceedance_probabilities,
+)
 from app.skill_engine import _csi_pod_far
-from app.config import ACTIVE_METRICS_DIR, PILOT_ZONES, THRESHOLDS
+from app.config import (
+    ACTIVE_METRICS_DIR, ACTIVE_MODEL_VERSION, CALIBRATION_DIR,
+    PILOT_ZONES, THRESHOLDS,
+)
 
 
 def evaluate(db, region: str, val_start, test_start, variable: str):
@@ -52,6 +57,61 @@ def evaluate(db, region: str, val_start, test_start, variable: str):
         "weight_source": source,
         "split_boundaries": {"val_start": str(val_start), "test_start": str(test_start)},
     }
+
+    if variable in {"temperature", "wind_speed"}:
+        threshold_key = next(key for key in THRESHOLDS[variable] if key != "unit")
+        threshold = THRESHOLDS[variable][threshold_key]
+        source = exceedance_calibration_source(variable, threshold_key, region)
+        probabilities = [
+            exceedance_probabilities(value, variable, region).get(threshold_key)
+            for value in blended_calibrated
+        ]
+        labels = (truth >= threshold).astype(float)
+        if source is not None and all(probability is not None for probability in probabilities):
+            scores = np.asarray(probabilities, dtype=float)
+            reliability = []
+            for lower, upper in zip(np.linspace(0.0, 1.0, 11)[:-1], np.linspace(0.0, 1.0, 11)[1:]):
+                mask = (scores >= lower) & ((scores < upper) | ((upper == 1.0) & (scores <= upper)))
+                if mask.any():
+                    reliability.append({
+                        "lower": float(lower), "upper": float(upper), "count": int(mask.sum()),
+                        "mean_predicted_probability": float(scores[mask].mean()),
+                        "observed_event_frequency": float(labels[mask].mean()),
+                    })
+            result["event_calibration"] = {
+                "variable": variable,
+                "event": threshold_key,
+                "threshold": threshold,
+                "calibration_source": source,
+                "n_test": int(len(labels)),
+                "positive_count": int(labels.sum()),
+                "negative_count": int(len(labels) - labels.sum()),
+                "brier_score": float(np.mean((scores - labels) ** 2)),
+                "event_frequency": float(labels.mean()),
+                "mean_predicted_probability": float(scores.mean()),
+                "expected_calibration_error": float(sum(
+                    bucket["count"] / len(labels) * abs(
+                        bucket["mean_predicted_probability"] - bucket["observed_event_frequency"]
+                    ) for bucket in reliability
+                )),
+                "reliability": reliability,
+            }
+        else:
+            result["event_calibration"] = {
+                "variable": variable,
+                "event": threshold_key,
+                "threshold": threshold,
+                "calibration_source": None,
+                "n_test": int(len(labels)),
+                "positive_count": int(labels.sum()),
+                "negative_count": int(len(labels) - labels.sum()),
+                "brier_score": None,
+                "event_frequency": float(labels.mean()),
+                "mean_predicted_probability": None,
+                "expected_calibration_error": None,
+                "reliability": [],
+                "status": "No fitted real calibrator; probability metrics unavailable.",
+            }
 
     model_errors = {}
     if variable == "precipitation":
@@ -116,17 +176,58 @@ def evaluate(db, region: str, val_start, test_start, variable: str):
     return result
 
 
+def _write_calibration_evaluation(results: list[dict], test_start) -> None:
+    report_path = CALIBRATION_DIR / "calibration_report.json"
+    if report_path.exists():
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    else:
+        report = {"model_version": ACTIVE_MODEL_VERSION or None, "calibrators": []}
+    report["test_evaluation"] = {
+        "status": "complete",
+        "data_split": "untouched_test_after_calibrators_frozen",
+        "test_start": str(test_start),
+        "events": [
+            {"region": item["region"], **item["event_calibration"]}
+            for item in results if item.get("event_calibration") is not None
+        ],
+    }
+    CALIBRATION_DIR.mkdir(exist_ok=True, parents=True)
+    report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    markdown_path = CALIBRATION_DIR / "calibration_report.md"
+    prior_markdown = markdown_path.read_text(encoding="utf-8") if markdown_path.exists() else "# Event Calibration Report\n"
+    prior_markdown = prior_markdown.split("\n## Untouched TEST Evaluation", 1)[0]
+    lines = ["", "## Untouched TEST Evaluation", "", f"TEST starts at {test_start}; calibrators were frozen before scoring.", ""]
+    lines.append("| Region | Variable | Event | N | Brier | Event frequency | Mean predicted | ECE | Status |")
+    lines.append("|---|---|---|---:|---:|---:|---:|---:|---|")
+
+    def format_metric(value):
+        return "n/a" if value is None else value
+
+    for event in report["test_evaluation"]["events"]:
+        lines.append(
+            f"| {event['region']} | {event.get('variable', '')} | {event['event']} | "
+            f"{event['n_test']} | {format_metric(event.get('brier_score'))} | "
+            f"{format_metric(event.get('event_frequency'))} | "
+            f"{format_metric(event.get('mean_predicted_probability'))} | "
+            f"{format_metric(event.get('expected_calibration_error'))} | "
+            f"{event.get('status', 'scored')} |"
+        )
+    markdown_path.write_text(prior_markdown.rstrip() + "\n" + "\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
     t0 = time.time()
     db = SessionLocal()
     val_start, test_start = get_global_split_boundaries(db)
     print(f"Evaluating on TEST split only (valid_time >= {test_start}).")
+    results = []
     for region in PILOT_ZONES:
         for variable in ("precipitation", "temperature", "wind_speed"):
             r = evaluate(db, region, val_start, test_start, variable)
             if not r:
                 print(f"{region} [{variable}]: not enough held-out test samples to evaluate.")
                 continue
+            results.append(r)
             if variable == "precipitation":
                 print(
                     f"{region} [{variable}]: Synoptiq CSI@50mm={r['synoptiq_csi']} vs "
@@ -139,6 +240,7 @@ def main():
                     f"{r['best_single_model']}={r['best_single_model_rmse']} "
                     f"({r['relative_rmse_improvement_pct']:+.1f}%, n={r['n_test_contexts']})"
                 )
+    _write_calibration_evaluation(results, test_start)
     print(f"[evaluation time: {time.time() - t0:.1f}s]")
     db.close()
 

@@ -2,7 +2,10 @@ import json
 from datetime import datetime
 from types import SimpleNamespace
 
+import numpy as np
+
 from app import api_v1
+from app.blending import calibration
 from app.replay import build_real_replay_case, real_test_replay_cases
 
 
@@ -62,11 +65,18 @@ def test_extreme_guidance_explains_missing_validation_calibrator(tmp_path, monke
     monkeypatch.setattr(api_v1, "_internal_region", lambda _: "bay_of_bengal_east_coast")
     monkeypatch.setattr(api_v1, "_latest_context", lambda *args: datetime(2026, 1, 1))
     monkeypatch.setattr(api_v1, "_blend_public", lambda *args: {
-        "sources": [{"model": "GFS"}, {"model": "IFS"}, {"model": "AIFS"}],
+        "sources": [
+            {"model": "GFS", "forecast_value": 26.0},
+            {"model": "IFS", "forecast_value": 28.0},
+            {"model": "AIFS", "forecast_value": 30.0},
+        ],
         "final_value": 28.0,
     })
     monkeypatch.setattr(api_v1, "run_blend_pipeline", lambda *args: SimpleNamespace(
-        exceedance_probabilities={"heavy": 0.4, "heatwave": 0.3, "gale": 0.2}
+        exceedance_probabilities={"heavy": 0.4, "heatwave": 0.3, "gale": 0.2},
+        trust_score=0.72,
+        bust_probability=0.18,
+        disagreement=1.4,
     ))
 
     response = api_v1.extreme_guidance("BOB", 72, object())
@@ -75,4 +85,48 @@ def test_extreme_guidance_explains_missing_validation_calibrator(tmp_path, monke
         item = next(guidance for guidance in response["guidance"] if guidance["variable"] == variable)
         assert item["calibrated"] is False
         assert item["probability"] is None
-        assert "validation calibrator" in item["probability_reason"]
+        assert item["calibration_status"] == "WITHHELD"
+        assert item["probability_reason"] == (
+            "Insufficient real calibration events in the non-test calibration set."
+        )
+        assert item["trust_score"] == 0.72
+        assert item["bust_probability"] == 0.18
+        assert item["bust_flag"] is False
+        assert item["disagreement"] == 1.4
+        assert item["source_range"] == {"minimum": 26.0, "maximum": 30.0}
+
+
+def test_extreme_guidance_applies_temperature_and_wind_artifacts(tmp_path, monkeypatch):
+    monkeypatch.setattr(api_v1, "CALIBRATION_DIR", tmp_path)
+    monkeypatch.setattr(calibration, "CAL_DIR", tmp_path)
+    calibration._load_iso.cache_clear()
+    calibration.fit_exceedance_calibrator(
+        np.arange(20, dtype=float), np.array([39.0] * 10 + [40.0] * 10),
+        "temperature", "heatwave",
+    )
+    calibration.fit_exceedance_calibrator(
+        np.arange(20, dtype=float), np.array([61.0] * 10 + [62.0] * 10),
+        "wind_speed", "gale",
+    )
+    monkeypatch.setattr(api_v1, "_internal_region", lambda _: "bay_of_bengal_east_coast")
+    monkeypatch.setattr(api_v1, "_latest_context", lambda *args: datetime(2026, 1, 1))
+    monkeypatch.setattr(api_v1, "_blend_public", lambda *args: {
+        "sources": [{"model": "GFS"}, {"model": "IFS"}, {"model": "AIFS"}],
+        "final_value": 28.0,
+    })
+
+    def run_pipeline(_db, region, variable, *_args):
+        return SimpleNamespace(
+            exceedance_probabilities=calibration.exceedance_probabilities(10.0, variable, region),
+        )
+
+    monkeypatch.setattr(api_v1, "run_blend_pipeline", run_pipeline)
+    response = api_v1.extreme_guidance("BOB", 72, object())
+
+    for variable in ("temperature", "wind_speed"):
+        item = next(guidance for guidance in response["guidance"] if guidance["variable"] == variable)
+        assert item["calibrated"] is True
+        assert item["calibration_status"] == "CALIBRATED"
+        assert item["calibration_source"] == "global"
+        assert item["probability"] is not None
+        assert 0.0 <= item["probability"] <= 1.0

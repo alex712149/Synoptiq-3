@@ -76,11 +76,16 @@ def assign_split_column(df: pd.DataFrame, val_start, test_start, time_col: str =
 # --------------------------------------------------------------------------
 # 2. Loading
 # --------------------------------------------------------------------------
-def load_merged_frame(db: Session, variable: str) -> pd.DataFrame:
+def load_merged_frame(db: Session, variable: str, before_time=None) -> pd.DataFrame:
     """One query for forecasts, one for ground truth, one merge. No per-row
     DB access anywhere downstream of this function."""
-    fdf = pd.read_sql(db.query(ForecastRow).filter(ForecastRow.variable == variable).statement, db.bind)
-    gdf = pd.read_sql(db.query(GroundTruthRow).filter(GroundTruthRow.variable == variable).statement, db.bind)
+    forecast_query = db.query(ForecastRow).filter(ForecastRow.variable == variable)
+    truth_query = db.query(GroundTruthRow).filter(GroundTruthRow.variable == variable)
+    if before_time is not None:
+        forecast_query = forecast_query.filter(ForecastRow.valid_time < before_time)
+        truth_query = truth_query.filter(GroundTruthRow.valid_time < before_time)
+    fdf = pd.read_sql(forecast_query.statement, db.bind)
+    gdf = pd.read_sql(truth_query.statement, db.bind)
     merged = fdf.merge(
         gdf[["region", "valid_time", "variable", "observed_value"]],
         on=["region", "valid_time", "variable"], how="inner",
@@ -226,12 +231,13 @@ def build_feature_frame(df: pd.DataFrame, variable: str) -> pd.DataFrame:
     return out[FEATURE_NAMES]
 
 
-def prepare_variable_frame(db: Session, variable: str, val_start, test_start) -> pd.DataFrame:
+def prepare_variable_frame(db: Session, variable: str, val_start, test_start,
+                           before_time=None) -> pd.DataFrame:
     """One-stop, fully vectorized prep for a variable: load -> split -> disagreement
     -> consensus deviation -> expanding skill/climatology -> ready for feature-frame
     construction. Returns the enriched row-level DataFrame (not yet the named
     feature matrix — call build_feature_frame(...) per model subset for that)."""
-    df = load_merged_frame(db, variable)
+    df = load_merged_frame(db, variable, before_time=before_time)
     if df.empty:
         return df
     df = assign_split_column(df, val_start, test_start)

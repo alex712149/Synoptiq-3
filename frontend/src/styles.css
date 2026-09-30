@@ -38,6 +38,30 @@ button[data-slot],.btn-instrument{}.page-state{min-height:60vh;display:grid;plac
 .trust-explainer{margin:0;padding:0 1.3rem 1rem;font-size:.72rem;color:var(--muted-foreground)}
 .threat{display:flex;flex-direction:column;align-items:flex-start;gap:.55rem;min-width:0}
 .threat-icon{margin-bottom:.6rem;flex:none}
+.probability-label{font:600 .58rem var(--font-mono);color:var(--primary);text-transform:uppercase}
+.proximity-content{display:flex;flex:1;flex-direction:column;gap:.7rem;width:100%;min-width:0}
+.proximity-heading{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%}
+.proximity-heading .threat-state{text-align:right}
+.threat.exceeded .proximity-heading .threat-state{color:var(--destructive)}
+.proximity-metrics{display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;width:100%;font:.59rem var(--font-mono)}
+.proximity-metrics>div{display:flex;flex-direction:column;gap:.18rem;min-width:0}
+.proximity-metrics span,.proximity-range span,.risk-signals span{color:var(--muted-foreground)}
+.proximity-metrics strong,.proximity-range strong,.risk-signals strong{color:var(--foreground);font-weight:600;overflow-wrap:anywhere}
+.proximity-gauge{width:100%;padding:.15rem 0}
+.proximity-track{position:relative;height:11px;border:1px solid var(--border);background:color-mix(in oklab,var(--foreground) 7%,var(--background))}
+.proximity-track i{display:block;height:100%;background:var(--primary);transition:width .35s ease}
+.threat.near .proximity-track i{background:var(--warning)}
+.threat.exceeded .proximity-track i{background:var(--destructive)}
+.proximity-threshold-marker{position:absolute;left:66.666%;top:-4px;bottom:-4px;width:1px;background:var(--foreground);opacity:.9}
+.proximity-forecast-marker{position:absolute;top:50%;width:10px;height:10px;border:2px solid var(--background);border-radius:50%;background:var(--foreground);box-shadow:0 0 0 1px var(--primary);transform:translate(-50%,-50%)}
+.proximity-scale{display:flex;justify-content:space-between;gap:.5rem;margin-top:.3rem;font:500 .49rem var(--font-mono);color:var(--muted-foreground)}
+.proximity-scale strong{color:var(--foreground);font-weight:600}
+.proximity-range{display:flex;justify-content:space-between;gap:.6rem;padding-top:.5rem;border-top:1px solid var(--border);font:.57rem var(--font-mono)}
+.risk-signals-block{width:100%;margin-top:auto;padding-top:.6rem;border-top:1px solid var(--border)}
+.risk-signals-title{font:600 .53rem var(--font-mono);color:var(--primary)}
+.risk-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;width:100%;margin-top:.4rem}
+.risk-signals>div{display:flex;flex-direction:column;gap:.2rem;min-width:0;font:.55rem var(--font-mono)}
+.calibrated-probability{padding-top:.45rem;border-top:1px solid var(--border);font:.58rem var(--font-mono);color:var(--primary)}
 .threat h2.threat-value{margin:.1rem 0 0;font:600 2.35rem/1.05 var(--font-display);color:var(--foreground);overflow-wrap:anywhere}
 .threat-state{font:600 .65rem var(--font-mono);color:var(--muted-foreground)}
 .threat-metrics{display:grid;gap:.3rem;margin-top:.35rem;font:.62rem var(--font-mono);color:var(--muted-foreground)}

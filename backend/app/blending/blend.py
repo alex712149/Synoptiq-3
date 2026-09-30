@@ -108,7 +108,8 @@ def batch_predict_scores(variable: str, model_name: str, X: pd.DataFrame) -> np.
 
 def batch_blend(variable: str, feats_by_model: dict[str, pd.DataFrame],
                  values_by_model: dict[str, np.ndarray],
-                 fallback_skill_by_model: dict[str, np.ndarray] | None = None) -> tuple[np.ndarray, dict[str, np.ndarray], str]:
+                 fallback_skill_by_model: dict[str, np.ndarray] | None = None,
+                 score_models: dict[str, object] | None = None) -> tuple[np.ndarray, dict[str, np.ndarray], str]:
     """
     feats_by_model: {model_name: DataFrame[FEATURE_NAMES]} aligned row-for-row
         across models (same context order for every model).
@@ -121,7 +122,11 @@ def batch_blend(variable: str, feats_by_model: dict[str, pd.DataFrame],
     score_rows = []
     used_meta_model = True
     for m in models:
-        s = batch_predict_scores(variable, m, feats_by_model[m])
+        if score_models is not None:
+            model = score_models.get(m)
+            s = model.predict(feats_by_model[m]) if model is not None else None
+        else:
+            s = batch_predict_scores(variable, m, feats_by_model[m])
         if s is None:
             used_meta_model = False
             break
