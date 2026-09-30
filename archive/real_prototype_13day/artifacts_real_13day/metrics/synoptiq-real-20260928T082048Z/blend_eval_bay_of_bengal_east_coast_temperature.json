@@ -1,0 +1,36 @@
+{
+  "region": "bay_of_bengal_east_coast",
+  "variable": "temperature",
+  "n_test_contexts": 20,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2025-03-05 00:00:00",
+    "test_start": "2025-03-07 00:00:00"
+  },
+  "metric": "RMSE",
+  "best_single_model": "GFS",
+  "best_single_model_rmse": 0.509,
+  "synoptiq_rmse": 1.129,
+  "synoptiq_mae": 1.078,
+  "synoptiq_bias": 1.078,
+  "per_model_metrics": {
+    "AIFS": {
+      "mae": 0.5017499999999995,
+      "rmse": 0.5949724783550904,
+      "bias": -0.017250000000000654
+    },
+    "GFS": {
+      "mae": 0.42834999999999945,
+      "rmse": 0.5090803964011963,
+      "bias": -0.2039499999999995
+    },
+    "IFS": {
+      "mae": 0.6204499999999997,
+      "rmse": 0.722568785652964,
+      "bias": -0.6204499999999997
+    }
+  },
+  "naive_average_mae": 0.411,
+  "naive_average_rmse": 0.531,
+  "relative_rmse_improvement_pct": -121.7
+}

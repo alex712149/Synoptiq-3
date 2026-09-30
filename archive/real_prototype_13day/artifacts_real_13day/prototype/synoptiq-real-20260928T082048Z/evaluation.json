@@ -1,0 +1,329 @@
+[
+  {
+    "region": "bay_of_bengal_east_coast",
+    "variable": "precipitation",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "CSI@50mm",
+    "best_single_model": "AIFS",
+    "best_single_model_csi": 0.0,
+    "synoptiq_csi": 0.0,
+    "synoptiq_mae": 0.279,
+    "synoptiq_rmse": 0.4864,
+    "per_model_metrics": {
+      "AIFS": {
+        "csi": 0.0,
+        "mae": 0.2555,
+        "rmse": 0.5095012266913593
+      },
+      "GFS": {
+        "csi": 0.0,
+        "mae": 0.2555,
+        "rmse": 0.5095012266913593
+      },
+      "IFS": {
+        "csi": 0.0,
+        "mae": 0.2555,
+        "rmse": 0.5095012266913593
+      }
+    },
+    "naive_average_mae": 0.2555,
+    "naive_average_rmse": 0.5095,
+    "relative_csi_improvement_pct": 0.0,
+    "fss_metric_type": "not applicable at this threshold summary; FSS-proxy remains diagnostic only"
+  },
+  {
+    "region": "bay_of_bengal_east_coast",
+    "variable": "temperature",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "GFS",
+    "best_single_model_rmse": 0.509,
+    "synoptiq_rmse": 1.129,
+    "synoptiq_mae": 1.078,
+    "synoptiq_bias": 1.078,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 0.5017499999999995,
+        "rmse": 0.5949724783550904,
+        "bias": -0.017250000000000654
+      },
+      "GFS": {
+        "mae": 0.42834999999999945,
+        "rmse": 0.5090803964011963,
+        "bias": -0.2039499999999995
+      },
+      "IFS": {
+        "mae": 0.6204499999999997,
+        "rmse": 0.722568785652964,
+        "bias": -0.6204499999999997
+      }
+    },
+    "naive_average_mae": 0.411,
+    "naive_average_rmse": 0.531,
+    "relative_rmse_improvement_pct": -121.7
+  },
+  {
+    "region": "bay_of_bengal_east_coast",
+    "variable": "wind_speed",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "IFS",
+    "best_single_model_rmse": 5.482,
+    "synoptiq_rmse": 4.298,
+    "synoptiq_mae": 3.986,
+    "synoptiq_bias": 0.633,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 5.174999999999999,
+        "rmse": 5.943030540052776,
+        "bias": -2.0769999999999995
+      },
+      "GFS": {
+        "mae": 6.06225,
+        "rmse": 7.129091214874446,
+        "bias": 3.208150000000001
+      },
+      "IFS": {
+        "mae": 4.59985,
+        "rmse": 5.481911961168292,
+        "bias": -2.8435499999999996
+      }
+    },
+    "naive_average_mae": 3.921,
+    "naive_average_rmse": 4.826,
+    "relative_rmse_improvement_pct": 21.59
+  },
+  {
+    "region": "indo_gangetic_plains",
+    "variable": "precipitation",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "CSI@50mm",
+    "best_single_model": "AIFS",
+    "best_single_model_csi": 0.0,
+    "synoptiq_csi": 0.0,
+    "synoptiq_mae": 0.0335,
+    "synoptiq_rmse": 0.0401,
+    "per_model_metrics": {
+      "AIFS": {
+        "csi": 0.0,
+        "mae": 0.10600000000000001,
+        "rmse": 0.11109230396386602
+      },
+      "GFS": {
+        "csi": 0.0,
+        "mae": 0.08,
+        "rmse": 0.08450739612601964
+      },
+      "IFS": {
+        "csi": 0.0,
+        "mae": 0.07289999999999999,
+        "rmse": 0.07753386356941075
+      }
+    },
+    "naive_average_mae": 0.0677,
+    "naive_average_rmse": 0.0756,
+    "relative_csi_improvement_pct": 0.0,
+    "fss_metric_type": "not applicable at this threshold summary; FSS-proxy remains diagnostic only"
+  },
+  {
+    "region": "indo_gangetic_plains",
+    "variable": "temperature",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "GFS",
+    "best_single_model_rmse": 4.51,
+    "synoptiq_rmse": 1.003,
+    "synoptiq_mae": 0.965,
+    "synoptiq_bias": -0.965,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 4.771750000000001,
+        "rmse": 4.790255134123861,
+        "bias": -4.771750000000001
+      },
+      "GFS": {
+        "mae": 4.4916,
+        "rmse": 4.510216125641875,
+        "bias": -4.4916
+      },
+      "IFS": {
+        "mae": 6.726650000000001,
+        "rmse": 6.757706582117931,
+        "bias": -6.726650000000001
+      }
+    },
+    "naive_average_mae": 5.33,
+    "naive_average_rmse": 5.348,
+    "relative_rmse_improvement_pct": 77.76
+  },
+  {
+    "region": "indo_gangetic_plains",
+    "variable": "wind_speed",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "GFS",
+    "best_single_model_rmse": 1.287,
+    "synoptiq_rmse": 3.981,
+    "synoptiq_mae": 3.962,
+    "synoptiq_bias": 3.962,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 3.06725,
+        "rmse": 3.534219751232229,
+        "bias": -3.06725
+      },
+      "GFS": {
+        "mae": 1.0859,
+        "rmse": 1.2867675780808279,
+        "bias": 0.44259999999999994
+      },
+      "IFS": {
+        "mae": 2.64575,
+        "rmse": 2.977204519343607,
+        "bias": -2.64575
+      }
+    },
+    "naive_average_mae": 1.757,
+    "naive_average_rmse": 1.821,
+    "relative_rmse_improvement_pct": -209.4
+  },
+  {
+    "region": "kerala_western_ghats",
+    "variable": "precipitation",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "CSI@50mm",
+    "best_single_model": "AIFS",
+    "best_single_model_csi": 0.0,
+    "synoptiq_csi": 0.0,
+    "synoptiq_mae": 0.6926,
+    "synoptiq_rmse": 0.7955,
+    "per_model_metrics": {
+      "AIFS": {
+        "csi": 0.0,
+        "mae": 0.5707500000000001,
+        "rmse": 0.6461491700838127
+      },
+      "GFS": {
+        "csi": 0.0,
+        "mae": 0.6183500000000001,
+        "rmse": 0.7196405005278678
+      },
+      "IFS": {
+        "csi": 0.0,
+        "mae": 0.2854,
+        "rmse": 0.364068537503586
+      }
+    },
+    "naive_average_mae": 0.351,
+    "naive_average_rmse": 0.4499,
+    "relative_csi_improvement_pct": 0.0,
+    "fss_metric_type": "not applicable at this threshold summary; FSS-proxy remains diagnostic only"
+  },
+  {
+    "region": "kerala_western_ghats",
+    "variable": "temperature",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "AIFS",
+    "best_single_model_rmse": 2.601,
+    "synoptiq_rmse": 0.792,
+    "synoptiq_mae": 0.718,
+    "synoptiq_bias": -0.718,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 2.5725000000000002,
+        "rmse": 2.6010837164535867,
+        "bias": -2.5725000000000002
+      },
+      "GFS": {
+        "mae": 4.620700000000001,
+        "rmse": 4.6428503637313145,
+        "bias": -4.620700000000001
+      },
+      "IFS": {
+        "mae": 4.5108000000000015,
+        "rmse": 4.53572896015624,
+        "bias": -4.5108000000000015
+      }
+    },
+    "naive_average_mae": 3.901,
+    "naive_average_rmse": 3.915,
+    "relative_rmse_improvement_pct": 69.55
+  },
+  {
+    "region": "kerala_western_ghats",
+    "variable": "wind_speed",
+    "n_test_contexts": 20,
+    "weight_source": "meta_model",
+    "split_boundaries": {
+      "val_start": "2025-03-05 00:00:00",
+      "test_start": "2025-03-07 00:00:00"
+    },
+    "metric": "RMSE",
+    "best_single_model": "GFS",
+    "best_single_model_rmse": 7.101,
+    "synoptiq_rmse": 0.837,
+    "synoptiq_mae": 0.634,
+    "synoptiq_bias": -0.289,
+    "per_model_metrics": {
+      "AIFS": {
+        "mae": 7.9822500000000005,
+        "rmse": 8.048158717992582,
+        "bias": -7.9822500000000005
+      },
+      "GFS": {
+        "mae": 6.7921000000000005,
+        "rmse": 7.101298740371369,
+        "bias": -6.7921000000000005
+      },
+      "IFS": {
+        "mae": 8.4256,
+        "rmse": 8.669047121800642,
+        "bias": -8.4256
+      }
+    },
+    "naive_average_mae": 7.733,
+    "naive_average_rmse": 7.884,
+    "relative_rmse_improvement_pct": 88.22
+  }
+]

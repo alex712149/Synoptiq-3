@@ -1,0 +1,36 @@
+{
+  "region": "kerala_western_ghats",
+  "variable": "wind_speed",
+  "n_test_contexts": 20,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2025-03-05 00:00:00",
+    "test_start": "2025-03-07 00:00:00"
+  },
+  "metric": "RMSE",
+  "best_single_model": "GFS",
+  "best_single_model_rmse": 7.101,
+  "synoptiq_rmse": 0.837,
+  "synoptiq_mae": 0.634,
+  "synoptiq_bias": -0.289,
+  "per_model_metrics": {
+    "AIFS": {
+      "mae": 7.9822500000000005,
+      "rmse": 8.048158717992582,
+      "bias": -7.9822500000000005
+    },
+    "GFS": {
+      "mae": 6.7921000000000005,
+      "rmse": 7.101298740371369,
+      "bias": -6.7921000000000005
+    },
+    "IFS": {
+      "mae": 8.4256,
+      "rmse": 8.669047121800642,
+      "bias": -8.4256
+    }
+  },
+  "naive_average_mae": 7.733,
+  "naive_average_rmse": 7.884,
+  "relative_rmse_improvement_pct": 88.22
+}

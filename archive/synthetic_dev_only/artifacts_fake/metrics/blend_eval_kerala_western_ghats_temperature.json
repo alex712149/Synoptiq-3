@@ -1,0 +1,15 @@
+{
+  "region": "kerala_western_ghats",
+  "variable": "temperature",
+  "n_test_contexts": 325,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2024-03-19 00:00:00",
+    "test_start": "2024-04-07 12:00:00"
+  },
+  "metric": "RMSE",
+  "best_single_model": "IFS",
+  "best_single_model_rmse": 1.573,
+  "synoptiq_rmse": 1.193,
+  "relative_rmse_improvement_pct": 24.16
+}

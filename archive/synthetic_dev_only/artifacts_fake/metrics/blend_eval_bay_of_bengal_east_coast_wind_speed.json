@@ -1,0 +1,15 @@
+{
+  "region": "bay_of_bengal_east_coast",
+  "variable": "wind_speed",
+  "n_test_contexts": 325,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2024-03-19 00:00:00",
+    "test_start": "2024-04-07 12:00:00"
+  },
+  "metric": "RMSE",
+  "best_single_model": "IFS",
+  "best_single_model_rmse": 4.836,
+  "synoptiq_rmse": 3.907,
+  "relative_rmse_improvement_pct": 19.22
+}

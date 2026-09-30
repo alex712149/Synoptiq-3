@@ -1,0 +1,16 @@
+{
+  "region": "bay_of_bengal_east_coast",
+  "variable": "precipitation",
+  "n_test_contexts": 325,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2024-03-19 00:00:00",
+    "test_start": "2024-04-07 12:00:00"
+  },
+  "metric": "CSI@50mm",
+  "best_single_model": "GFS",
+  "best_single_model_csi": 0.8235,
+  "synoptiq_csi": 0.9375,
+  "relative_csi_improvement_pct": 13.84,
+  "fss_metric_type": "not applicable at this threshold summary; FSS-proxy remains diagnostic only"
+}

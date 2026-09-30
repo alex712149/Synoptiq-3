@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: synoptiq-api
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python training/realdata/seed_corrected_history.py && uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: SYNOPTIQ_MODE
+        value: real
+      - key: SYNOPTIQ_DATABASE_ROLE
+        value: PRODUCTION
+      - key: DATABASE_URL
+        fromDatabase:
+          name: synoptiq-postgres
+          property: connectionString
+      - key: SYNOPTIQ_MODEL_VERSION
+        value: synoptiq-real-12m-20260930-aifs-unitfix
+      - key: SYNOPTIQ_ARTIFACTS_DIR
+        value: artifacts/real_12m_aifs_corrected
+      - key: SYNOPTIQ_MODELS_DIR
+        value: artifacts/real_12m_aifs_corrected/models
+      - key: SYNOPTIQ_CALIBRATION_DIR
+        value: artifacts/real_12m_aifs_corrected/calibration
+      - key: SYNOPTIQ_METRICS_DIR
+        value: artifacts/real_12m_aifs_corrected/metrics
+      - key: SYNOPTIQ_LIVE_DATA_DIR
+        value: data/real/live_aifs_unitfix
+      - key: SYNOPTIQ_HISTORY_SEED_ARCHIVE
+        value: artifacts/real_12m_aifs_corrected/seed/training_aifs_corrected.zip
+      - key: SYNOPTIQ_CORS_ORIGINS
+        sync: false
+      - key: NASA_EARTHDATA_USERNAME
+        sync: false
+      - key: NASA_EARTHDATA_PASSWORD
+        sync: false
+
+  - type: cron
+    name: synoptiq-live-refresh
+    runtime: python
+    rootDir: .
+    schedule: "*/15 * * * *"
+    buildCommand: pip install -r backend/requirements.txt -r training/requirements.txt
+    startCommand: python training/realdata/live_refresh.py --once
+    envVars:
+      - key: SYNOPTIQ_MODE
+        value: real
+      - key: SYNOPTIQ_DATABASE_ROLE
+        value: PRODUCTION
+      - key: DATABASE_URL
+        fromDatabase:
+          name: synoptiq-postgres
+          property: connectionString
+      - key: SYNOPTIQ_MODEL_VERSION
+        value: synoptiq-real-12m-20260930-aifs-unitfix
+      - key: SYNOPTIQ_ARTIFACTS_DIR
+        value: artifacts/real_12m_aifs_corrected
+      - key: SYNOPTIQ_MODELS_DIR
+        value: artifacts/real_12m_aifs_corrected/models
+      - key: SYNOPTIQ_CALIBRATION_DIR
+        value: artifacts/real_12m_aifs_corrected/calibration
+      - key: SYNOPTIQ_METRICS_DIR
+        value: artifacts/real_12m_aifs_corrected/metrics
+      - key: SYNOPTIQ_LIVE_DATA_DIR
+        value: data/real/live_aifs_unitfix
+
+databases:
+  - name: synoptiq-postgres
+    plan: free

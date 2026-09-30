@@ -1,0 +1,1 @@
+Moved out of the real-mode production path on 2026-09-30T07:18:22Z. Kept for DEMO-mode local frontend development only — not imported by any backend/app production module (verified by grep before moving).

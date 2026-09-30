@@ -1,0 +1,36 @@
+{
+  "region": "indo_gangetic_plains",
+  "variable": "wind_speed",
+  "n_test_contexts": 20,
+  "weight_source": "meta_model",
+  "split_boundaries": {
+    "val_start": "2025-03-05 00:00:00",
+    "test_start": "2025-03-07 00:00:00"
+  },
+  "metric": "RMSE",
+  "best_single_model": "GFS",
+  "best_single_model_rmse": 1.287,
+  "synoptiq_rmse": 3.981,
+  "synoptiq_mae": 3.962,
+  "synoptiq_bias": 3.962,
+  "per_model_metrics": {
+    "AIFS": {
+      "mae": 3.06725,
+      "rmse": 3.534219751232229,
+      "bias": -3.06725
+    },
+    "GFS": {
+      "mae": 1.0859,
+      "rmse": 1.2867675780808279,
+      "bias": 0.44259999999999994
+    },
+    "IFS": {
+      "mae": 2.64575,
+      "rmse": 2.977204519343607,
+      "bias": -2.64575
+    }
+  },
+  "naive_average_mae": 1.757,
+  "naive_average_rmse": 1.821,
+  "relative_rmse_improvement_pct": -209.4
+}

@@ -1,0 +1,11 @@
+{
+  "data_mode": "fake",
+  "artifact_labels": ["FAKE", "DEMO", "SYNTHETIC"],
+  "training_mode": "FAKE_DEMO",
+  "history_label": "SYNTHETIC",
+  "synthetic_data_used": true,
+  "model_version": "fake-demo",
+  "forecast_sources": ["SYNTHETIC_DEMO_ARCHIVE"],
+  "truth_sources": ["IMERG_ERA5_synthetic"],
+  "notes": "Synthetic development/demo artifacts. These are never loaded in real mode."
+}
